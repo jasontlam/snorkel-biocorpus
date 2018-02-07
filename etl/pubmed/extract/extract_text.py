@@ -48,14 +48,37 @@ def parse_xml_format(filename, outputdir):
     return errors
 
 def parse_bioc_format(filename, outputdir):
+    
     """
-    TOOD: BioC XML format
-
+    BioC XML Format
     :param filename:
     :param outputdir:
     :return:
     """
-    pass
+    
+    doc_xpath      = './/document'
+    id_xpath       = './/id/text()'
+    ab_text = './/passage/text/text()'
+
+    errors = 0
+    outfile = os.path.basename(filename)
+    outfile = ".".join(outfile.split(".")[0:-1])
+    outfile = "{}/{}.txt".format(outputdir.replace(os.path.basename(filename), ""), outfile)
+    with codecs.open(outfile, "w", "utf-8") as op:
+        for i, doc in enumerate(et.parse(filename).xpath(doc_xpath)):
+            try:
+                pmid = doc.xpath(id_xpath)[0]
+                # abstract = doc.xpath(abstract_xpath)[0] if doc.xpath(abstract_xpath) else ""
+                text = '\n'.join(
+                    filter(lambda t: t is not None, doc.xpath(ab_text))
+                )
+                op.write(u"~~_PMID_{}_~~\n".format(pmid))
+                op.write(text + u"\n")
+            except:
+                errors += 1
+
+    print "Wrote", outfile
+    return errors
 
 def parse_standoff_format(filename, outputdir, prefix="tmp"):
     """
@@ -79,6 +102,39 @@ def parse_standoff_format(filename, outputdir, prefix="tmp"):
     print "Wrote", outfile
     return errors
 
+#Separate abstracts into document name and text for TSV
+def parse_tsv(filename):
+    with codecs.open(filename, encoding='utf-8') as tsv:
+        for line in tsv:
+            (doc_name, doc_text) = line.split('\t')
+            yield doc_name,doc_text
+def strip_special(s):
+    return ''.join(c for c in s if ord(c) < 128)
+
+def parse_tsv_format(filename, outputdir):
+    """
+    Parsing PubMed abstracts in TSV format
+    :param filename:
+    :param outputdir:
+    :return:
+    """
+    
+    errors = 0
+    outfile = os.path.basename(filename)
+    outfile = ".".join(outfile.split(".")[0:-1])
+    outfile = "{}/{}.txt".format(outputdir.replace(os.path.basename(filename), ""), outfile)
+
+    tsv = parse_tsv(filename)
+    with codecs.open(outfile, "w", "utf-8") as op:
+        for doc, text in tsv:
+            try:
+                op.write(u"~~_PMID_{}_~~\n".format(doc))
+                op.write(strip_special(text).strip() + u"\n")
+            except:
+                errors += 1
+
+    print "Wrote", outfile
+    return errors
 def get_doc_parser(format):
     """
     Support various utililities for extracting text data
@@ -90,6 +146,8 @@ def get_doc_parser(format):
         return parse_xml_format
     elif format == "bioc":
         return parse_bioc_format
+    elif format == "tsv":
+        return parse_tsv_format
     else:
         return parse_standoff_format
 
