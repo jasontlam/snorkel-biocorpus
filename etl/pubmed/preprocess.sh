@@ -5,7 +5,8 @@
 #
 INPUT=$1
 OUTPUT="${INPUT}"
-FORMAT="pubtator"
+#Get format from command line
+FORMAT=$3
 
 cd extract
 python extract_text.py -i ${INPUT} -o ${OUTPUT} -f ${FORMAT}
