@@ -2,8 +2,8 @@
 Extract-Transform-Load Scripts for Parsing Biomedcial Corpora
 
 Instructions
-./preprocess.sh <INPUT> <OUTPUT>
-
+./preprocess.sh <INPUT> <OUTPUT> <FORMAT>
+e.g. python ./preprocess.sh /Users/Jason/Desktop/snorkelB/CDR /Users/Jason/Desktop/snorkelB/CDR bioc
 
 Extract Gold Tag Data
 python extract_annotations.py -i /Users/fries/Desktop/cdr/ -o  /Users/fries/Desktop/
